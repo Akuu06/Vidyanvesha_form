@@ -1,0 +1,89 @@
+name: Deploy Vidyanvesha Core
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/vidyanvesha_core:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # 1. EMERGENCY CLEANUP (Run this FIRST to free space for the 'cat' commands)
+            echo "Running emergency disk cleanup on EC2..."
+            sudo docker system prune -af --volumes
+            sudo docker builder prune -af
+
+            # 2. Create project directory
+            mkdir -p ~/vidyanvesha_core
+            cd ~/vidyanvesha_core
+
+            # 3. Create the .env file (Now it has space to write!)
+            echo "Creating .env file..."
+            cat <<EOF > .env
+            SECRET_KEY=${{ secrets.DJANGO_SERVER_SECRETS }}
+            DEBUG=False
+            ALLOWED_HOSTS=${{ secrets.VPS_IP }},localhost,127.0.0.1
+            DB_ENGINE=django.db.backends.postgresql
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_HOST=ec2-34-234-69-85.compute-1.amazonaws.com
+            DB_PORT=5432
+            EOF
+
+            # 4. Create docker-compose.yml
+            echo "Creating docker-compose.yml..."
+            cat <<EOF > docker-compose.yml
+            services:
+              web:
+                image: ${{ secrets.DOCKER_HUB_USERNAME }}/vidyanvesha_core:latest
+                container_name: vidyanvesha_web
+                restart: always
+                ports:
+                  - "8001:8000"  # Fixed: Mapping 8001 to internal 8000
+                env_file:
+                  - .env
+                extra_hosts:
+                  - "host.docker.internal:host-gateway"
+            EOF
+
+            # 5. Deploy
+            echo "Pulling latest image..."
+            sudo docker compose pull
+
+            echo "Restarting containers..."
+            sudo docker compose up -d --force-recreate
+
+            # 6. Post-Deployment Tasks
+            echo "Running Migrations..."
+            sudo docker compose exec -T web python manage.py migrate
+
+            echo "Collecting Static Files..."
+            sudo docker compose exec -T web python manage.py collectstatic --noinput

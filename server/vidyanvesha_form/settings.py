@@ -107,20 +107,20 @@ WSGI_APPLICATION = 'vidyanvesha_form.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'NAME': 'vidyanvesha_form',
+    #     'USER': 'postgres',
+    #     'PASSWORD': 'Abcde@12345',
+    #     'HOST': 'localhost',  # Local PostgreSQL
+    #     'PORT': '5432',
+    # },
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'vidyanvesha_form',
-        'USER': 'postgres',
-        'PASSWORD': 'Abcde@12345',
-        'HOST': 'localhost',  # Local PostgreSQL
-        'PORT': '5432',
-    },
-    'secondary': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'vidyanvesha_core',
-        'USER': 'vidyanvesha_core_db_user',
+        'USER': 'vidyanvesha_form_db_user',
         'PASSWORD': 'Abcdef@123456',
-        'HOST': 'ec2-34-234-69-85.compute-1.amazonaws.com',  # AWS RDS endpoint
+        'HOST': 'ec2-65-1-133-192.ap-south-1.compute.amazonaws.com',  # AWS RDS endpoint
         'PORT': '5432',
     }
 }
