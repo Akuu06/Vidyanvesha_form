@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: vidyanvesha_form_web
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    # Adjust this path if your service account JSON is somewhere else or you mount it differently
+    volumes:
+      - ./config/firebase_service_account.json:/app/config/firebase_service_account.json:ro
+    restart: unless-stopped
+    # If you need to connect to a local postgres DB you might need a db service, 
+    # but since you connect to RDS, passing connection strings via .env is sufficient.
