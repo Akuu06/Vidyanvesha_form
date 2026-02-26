@@ -27,5 +27,5 @@ router.register(r'question-snapshots', QuestionSnapshotViewSet, basename='questi
 urlpatterns = [
     path('', api_root, name='api-root'),
     path('login/', login, name='login'),
-    path('api/', include(router.urls)),
+    path('api/', include(router.urls)), #added api/ prefix to all form management endpoints for better namespacing
 ]
