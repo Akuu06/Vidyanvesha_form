@@ -1,4 +1,4 @@
-name: Deploy Vidyanvesha Core
+name: Deploy Vidyanvesha Form Server
 
 on:
   push:
@@ -20,9 +20,9 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./server
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/vidyanvesha_core:latest
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/vidyanvesha_form_server:latest
 
   deploy:
     needs: build-and-push
@@ -35,53 +35,63 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # 1. EMERGENCY CLEANUP (Run this FIRST to free space for the 'cat' commands)
+            # 1. EMERGENCY CLEANUP
             echo "Running emergency disk cleanup on EC2..."
             sudo docker system prune -af --volumes
             sudo docker builder prune -af
 
             # 2. Create project directory
-            mkdir -p ~/vidyanvesha_core
-            cd ~/vidyanvesha_core
+            mkdir -p ~/vidyanvesha_form_server/config
+            cd ~/vidyanvesha_form_server
 
-            # 3. Create the .env file (Now it has space to write!)
+            # 3. Create the .env file
             echo "Creating .env file..."
             cat <<EOF > .env
             SECRET_KEY=${{ secrets.DJANGO_SERVER_SECRETS }}
             DEBUG=False
-            ALLOWED_HOSTS=${{ secrets.VPS_IP }},localhost,127.0.0.1
+            ALLOWED_HOSTS=${{ secrets.VPS_IP }},localhost,127.0.0.1,api.echotales.fun
+            # Note: your settings.py doesn't currently use these DB variables, it has them hardcoded.
             DB_ENGINE=django.db.backends.postgresql
             DB_NAME=${{ secrets.DB_NAME }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            DB_HOST=ec2-34-234-69-85.compute-1.amazonaws.com
+            DB_HOST=ec2-65-1-133-192.ap-south-1.compute.amazonaws.com
             DB_PORT=5432
             EOF
 
-            # 4. Create docker-compose.yml
+            # 4. Create firebase credentials file
+            # You must add FIREBASE_SERVICE_ACCOUNT_JSON as a GitHub Repository Secret
+            echo "Creating firebase_service_account.json..."
+            cat <<'EOF' > config/firebase_service_account.json
+            ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+            EOF
+
+            # 5. Create docker-compose.yml
             echo "Creating docker-compose.yml..."
-            cat <<EOF > docker-compose.yml
+            cat <<'EOF' > docker-compose.yml
             services:
               web:
-                image: ${{ secrets.DOCKER_HUB_USERNAME }}/vidyanvesha_core:latest
-                container_name: vidyanvesha_web
+                image: ${{ secrets.DOCKER_HUB_USERNAME }}/vidyanvesha_form_server:latest
+                container_name: vidyanvesha_form_web
                 restart: always
                 ports:
-                  - "8001:8000"  # Fixed: Mapping 8001 to internal 8000
+                  - "8002:8000"  # Mapping to 8002 to avoid conflicting with core on 8001
                 env_file:
                   - .env
+                volumes:
+                  - ./config/firebase_service_account.json:/app/config/firebase_service_account.json:ro
                 extra_hosts:
                   - "host.docker.internal:host-gateway"
             EOF
 
-            # 5. Deploy
+            # 6. Deploy
             echo "Pulling latest image..."
             sudo docker compose pull
 
             echo "Restarting containers..."
             sudo docker compose up -d --force-recreate
 
-            # 6. Post-Deployment Tasks
+            # 7. Post-Deployment Tasks
             echo "Running Migrations..."
             sudo docker compose exec -T web python manage.py migrate
 
