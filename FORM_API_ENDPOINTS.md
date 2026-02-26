@@ -15,7 +15,7 @@
 ### Super Parent Module (ID: 562)
 - **Name**: Form Overall Management
 - **Description**: Parent module for all form management features
-- **Direct Children**: 11 Parent Modules (55 Child Modules, 65 Endpoints)
+- **Direct Children**: 12 Parent Modules (60 Child Modules, 70 Endpoints)
 
 ---
 
@@ -164,26 +164,39 @@
 
 ---
 
+### Parent Module 12: Question Snapshots Management (ID: 644)
+**Description**: Management of question snapshots for versioning and archival
+
+| # | Child Module | HTTP | Endpoint | URL ID | Description |
+|---|---|---|---|---|---|
+| 1 | Question Snapshots Management - Insert Question Snapshot | `POST` | `/api/question-snapshots/` | 548 | Create question snapshot |
+| 2 | Question Snapshots Management - Update Question Snapshot | `PUT` | `/api/question-snapshots/{id}/` | 549 | Update question snapshot |
+| 3 | Question Snapshots Management - Delete Question Snapshot | `DELETE` | `/api/question-snapshots/{id}/` | 550 | Delete question snapshot |
+| 4 | Question Snapshots Management - View All Question Snapshots | `GET` | `/api/question-snapshots/` | 551 | List question snapshots |
+| 5 | Question Snapshots Management - View Specific Question Snapshot | `GET` | `/api/question-snapshots/{id}/` | 552 | View specific question snapshot |
+
+---
+
 ## Statistics
 
 | Metric | Count |
 |--------|-------|
 | **Super Parent Module** | 1 |
-| **Parent Modules** | 11 |
-| **Child Modules** | 54 |
-| **Total Modules** | 66 |
-| **Parent-Child Relationships** | 65 |
-| **Total URL Endpoints** | 64 |
-| **POST (Create)** | 11 |
-| **PUT (Update)** | 11 |
-| **DELETE** | 11 |
-| **GET (Read)** | 31 |
+| **Parent Modules** | 12 |
+| **Child Modules** | 60 |
+| **Total Modules** | 73 |
+| **Parent-Child Relationships** | 72 |
+| **Total URL Endpoints** | 70 |
+| **POST (Create)** | 12 |
+| **PUT (Update)** | 12 |
+| **DELETE** | 12 |
+| **GET (Read)** | 34 |
 
 ---
 
 ## API Endpoints by HTTP Method
 
-### POST Endpoints (Create Operations - 11 total)
+### POST Endpoints (Create Operations - 12 total)
 | # | Endpoint | Parent Module | Description |
 |---|---|---|---|
 | 1 | `POST /api/forms/` | Forms Management | Create new form |
@@ -197,8 +210,9 @@
 | 9 | `POST /api/access-rules/` | Form Access Rules Management | Create access rule |
 | 10 | `POST /api/attempt-logs/` | Form Attempt Logs Management | Create attempt log |
 | 11 | `POST /api/question-analytics/` | Question Analytics Management | Create question analytics |
+| 12 | `POST /api/question-snapshots/` | Question Snapshots Management | Create question snapshot |
 
-### PUT Endpoints (Update Operations - 11 total)
+### PUT Endpoints (Update Operations - 12 total)
 | # | Endpoint | Parent Module | Description |
 |---|---|---|---|
 | 1 | `PUT /api/forms/{id}/` | Forms Management | Update existing form |
@@ -212,8 +226,9 @@
 | 9 | `PUT /api/access-rules/{id}/` | Form Access Rules Management | Update access rule |
 | 10 | `PUT /api/attempt-logs/{id}/` | Form Attempt Logs Management | Update attempt log |
 | 11 | `PUT /api/question-analytics/{id}/` | Question Analytics Management | Update question analytics |
+| 12 | `PUT /api/question-snapshots/{id}/` | Question Snapshots Management | Update question snapshot |
 
-### DELETE Endpoints (Delete Operations - 11 total)
+### DELETE Endpoints (Delete Operations - 12 total)
 | # | Endpoint | Parent Module | Description |
 |---|---|---|---|
 | 1 | `DELETE /api/forms/{id}/` | Forms Management | Delete form |
@@ -227,8 +242,9 @@
 | 9 | `DELETE /api/access-rules/{id}/` | Form Access Rules Management | Delete access rule |
 | 10 | `DELETE /api/attempt-logs/{id}/` | Form Attempt Logs Management | Delete attempt log |
 | 11 | `DELETE /api/question-analytics/{id}/` | Question Analytics Management | Delete question analytics |
+| 12 | `DELETE /api/question-snapshots/{id}/` | Question Snapshots Management | Delete question snapshot |
 
-### GET Endpoints (Read Operations - 32 total)
+### GET Endpoints (Read Operations - 34 total)
 | # | Endpoint | Parent Module | Description |
 |---|---|---|---|
 | 1 | `GET /api/forms/` | Forms Management | List all forms |
@@ -253,6 +269,8 @@
 | 20 | `GET /api/attempt-logs/{id}/` | Form Attempt Logs Management | View specific attempt log |
 | 21 | `GET /api/question-analytics/` | Question Analytics Management | List question analytics |
 | 22 | `GET /api/question-analytics/{id}/` | Question Analytics Management | View specific question analytics |
+| 23 | `GET /api/question-snapshots/` | Question Snapshots Management | List question snapshots |
+| 24 | `GET /api/question-snapshots/{id}/` | Question Snapshots Management | View specific question snapshot |
 
 ---
 
@@ -322,7 +340,8 @@ Check   Check  Check   Check     Granted
   - ├─ Parent (605): Response File Uploads Management
   - ├─ Parent (611): Form Access Rules Management
   - ├─ Parent (618): Form Attempt Logs Management
-  - └─ Parent (624): Question Analytics Management
+  - ├─ Parent (624): Question Analytics Management
+  - └─ Parent (644): Question Snapshots Management
 
 ---
 
