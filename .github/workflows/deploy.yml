@@ -86,14 +86,14 @@ jobs:
 
             # 6. Deploy
             echo "Pulling latest image..."
-            sudo docker compose pull
+            sudo docker-compose pull
 
             echo "Restarting containers..."
-            sudo docker compose up -d --force-recreate
+            sudo docker-compose up -d --force-recreate
 
             # 7. Post-Deployment Tasks
             echo "Running Migrations..."
-            sudo docker compose exec -T web python manage.py migrate
+            sudo docker-compose exec -T web python manage.py migrate
 
             echo "Collecting Static Files..."
-            sudo docker compose exec -T web python manage.py collectstatic --noinput
+            sudo docker-compose exec -T web python manage.py collectstatic --noinput
