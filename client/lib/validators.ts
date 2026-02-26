@@ -14,10 +14,9 @@ export const createFormSchema = z.object({
     .max(VALIDATION_RULES.form.title.maxLength, "Title must not exceed 300 characters"),
   description: z.string()
     .max(VALIDATION_RULES.form.description.maxLength, "Description is too long")
-    .optional()
-    .default(""),
+    .optional(),
   mode: z.nativeEnum(FormMode),
-  status: z.nativeEnum(FormStatus).optional().default(FormStatus.DRAFT)
+  status: z.nativeEnum(FormStatus).optional()
 });
 
 export const updateFormBasicSchema = z.object({
@@ -191,7 +190,7 @@ export const submitAnswerSchema = z.object({
   (data) => {
     // At least one answer field must be provided
     return data.answer_text !== null || 
-           (data.selected_option_ids !== null && data.selected_option_ids.length > 0);
+           (data.selected_option_ids !== null && data.selected_option_ids !== undefined && data.selected_option_ids.length > 0);
   },
   {
     message: "Answer is required",
@@ -220,12 +219,11 @@ export const questionLogicSchema = z.object({
 // AUTH SCHEMAS
 // ============================================
 
-export const loginSchema = z.object({
-  email: z.string()
+export const loginSchema = z.object({  email: z.string()
     .email("Invalid email address"),
   password: z.string()
     .min(6, "Password must be at least 6 characters"),
-  remember_me: z.boolean().optional().default(false)
+  remember_me: z.boolean().optional()
 });
 
 export const registerSchema = z.object({

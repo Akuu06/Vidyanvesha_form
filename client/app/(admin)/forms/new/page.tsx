@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createFormSchema, type CreateFormInput } from "@/lib/validators";
 import { FORM_MODES } from "@/lib/constants";
+import { FormMode, FormStatus } from "@/types";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -28,11 +29,12 @@ export default function NewFormPage() {
     formState: { errors },
     setValue,
     watch
-  } = useForm<CreateFormInput>({
+  } = useForm({
     resolver: zodResolver(createFormSchema),
     defaultValues: {
-      mode: "normal_form" as any,
-      status: "draft" as any
+      description: "",
+      mode: FormMode.NORMAL_FORM,
+      status: FormStatus.DRAFT
     }
   });
 
@@ -106,7 +108,7 @@ export default function NewFormPage() {
                 <Label htmlFor="mode">Form Type *</Label>
                 <Select
                   defaultValue={watch("mode")}
-                  onValueChange={(value) => setValue("mode", value as any)}
+                  onValueChange={(value) => setValue("mode", value as FormMode)}
                 >
                   <SelectTrigger id="mode">
                     <SelectValue placeholder="Select form type" />
