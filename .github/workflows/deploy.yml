@@ -35,16 +35,21 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # 1. EMERGENCY CLEANUP
-            echo "Running emergency disk cleanup on EC2..."
-            sudo docker system prune -af --volumes
-            sudo docker builder prune -af
+            # 1. Stop existing containers first (before cleanup)
+            echo "Stopping existing containers..."
+            cd ~/vidyanvesha_form_server 2>/dev/null || true
+            sudo docker compose down 2>/dev/null || sudo docker-compose down 2>/dev/null || true
 
-            # 2. Create project directory
+            # 2. CLEANUP (safer approach)
+            echo "Running disk cleanup..."
+            sudo docker system prune -f --filter "until=24h"
+            sudo docker image prune -af --filter "until=24h"
+
+            # 3. Create project directory
             mkdir -p ~/vidyanvesha_form_server/config
             cd ~/vidyanvesha_form_server
 
-            # 3. Create the .env file
+            # 4. Create the .env file
             echo "Creating .env file..."
             cat <<EOF > .env
             SECRET_KEY=${{ secrets.DJANGO_SERVER_SECRETS }}
@@ -59,16 +64,18 @@ jobs:
             DB_PORT=5432
             EOF
 
-            # 4. Create firebase credentials file
+            # 5. Create firebase credentials file
             # You must add FIREBASE_SERVICE_ACCOUNT_JSON as a GitHub Repository Secret
             echo "Creating firebase_service_account.json..."
             cat <<'EOF' > config/firebase_service_account.json
             ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
             EOF
 
-            # 5. Create docker-compose.yml
+            # 6. Create docker-compose.yml (v2 format)
             echo "Creating docker-compose.yml..."
             cat <<'EOF' > docker-compose.yml
+            version: '3.8'
+            
             services:
               web:
                 image: ${{ secrets.DOCKER_HUB_USERNAME }}/vidyanvesha_form_server:latest
@@ -84,16 +91,20 @@ jobs:
                   - "host.docker.internal:host-gateway"
             EOF
 
-            # 6. Deploy
+            # 7. Deploy using Docker Compose v2
             echo "Pulling latest image..."
-            sudo docker-compose pull
+            sudo docker compose pull || sudo docker-compose pull
 
-            echo "Restarting containers..."
-            sudo docker-compose up -d --force-recreate
+            echo "Starting containers..."
+            sudo docker compose up -d || sudo docker-compose up -d
 
-            # 7. Post-Deployment Tasks
+            # 8. Wait for container to be ready
+            echo "Waiting for container to be ready..."
+            sleep 5
+
+            # 9. Post-Deployment Tasks
             echo "Running Migrations..."
-            sudo docker-compose exec -T web python manage.py migrate
+            sudo docker compose exec -T web python manage.py migrate || sudo docker-compose exec -T web python manage.py migrate
 
             echo "Collecting Static Files..."
-            sudo docker-compose exec -T web python manage.py collectstatic --noinput
+            sudo docker compose exec -T web python manage.py collectstatic --noinput || sudo docker-compose exec -T web python manage.py collectstatic --noinput
