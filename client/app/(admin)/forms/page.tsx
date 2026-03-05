@@ -290,7 +290,7 @@ export default function FormsPage() {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/forms/${form.id}/responses`}>
+                          <Link href={`/responses`}>
                             <FileText className="mr-2 h-4 w-4" />
                             View Responses
                           </Link>
