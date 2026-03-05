@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -35,7 +36,8 @@ import {
     Hash,
     Layers,
     FileText,
-    Database
+    Database,
+    XCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { formQuestionService } from "@/service/FormQuestionService";
@@ -43,6 +45,10 @@ import { FormQuestion } from "@/types/form.types";
 import { Badge } from "@/components/ui/badge";
 
 export default function FormQuestionListPage() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const formIdFilter = searchParams.get("formId");
+
     const [searchQuery, setSearchQuery] = useState("");
     const [formQuestions, setFormQuestions] = useState<FormQuestion[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -69,13 +75,18 @@ export default function FormQuestionListPage() {
 
     const filteredQuestions = useMemo(() => {
         return formQuestions.filter((item) => {
+            // Filter by formId if provided in URL
+            if (formIdFilter && item.form !== Number(formIdFilter)) {
+                return false;
+            }
+
             const matchesSearch =
                 (item.form_title && item.form_title.toLowerCase().includes(searchQuery.toLowerCase())) ||
                 (item.section_title && item.section_title.toLowerCase().includes(searchQuery.toLowerCase())) ||
                 (item.question_id.toString().includes(searchQuery));
             return matchesSearch;
         });
-    }, [formQuestions, searchQuery]);
+    }, [formQuestions, searchQuery, formIdFilter]);
 
     const handleDelete = async (id: number) => {
         if (!confirm(`Are you sure you want to remove this question from the form?`)) return;
@@ -143,6 +154,16 @@ export default function FormQuestionListPage() {
                         className="pl-10"
                     />
                 </div>
+                {formIdFilter && (
+                    <Button
+                        variant="secondary"
+                        onClick={() => router.push("/form-questions")}
+                        className="bg-primary/10 text-primary hover:bg-primary/20"
+                    >
+                        Showing Form #{formIdFilter}
+                        <XCircle className="ml-2 h-4 w-4 text-primary" />
+                    </Button>
+                )}
             </div>
 
             {/* Table */}

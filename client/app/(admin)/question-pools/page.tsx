@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -32,7 +33,8 @@ import {
     Database,
     Loader2,
     AlertCircle,
-    Shuffle
+    Shuffle,
+    XCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import { questionPoolService } from "@/service/QuestionPoolService";
@@ -40,6 +42,10 @@ import { QuestionPool } from "@/types/form.types";
 import { Badge } from "@/components/ui/badge";
 
 export default function QuestionPoolListPage() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const formIdFilter = searchParams.get("formId");
+
     const [searchQuery, setSearchQuery] = useState("");
     const [pools, setPools] = useState<QuestionPool[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -66,12 +72,17 @@ export default function QuestionPoolListPage() {
 
     const filteredPools = useMemo(() => {
         return pools.filter((pool) => {
+            // Filter by formId if provided in URL
+            if (formIdFilter && pool.form !== Number(formIdFilter)) {
+                return false;
+            }
+
             const matchesSearch =
-                pool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (pool.name && pool.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
                 (pool.form_title && pool.form_title.toLowerCase().includes(searchQuery.toLowerCase()));
             return matchesSearch;
         });
-    }, [pools, searchQuery]);
+    }, [pools, searchQuery, formIdFilter]);
 
     const handleDelete = async (poolId: number, poolName: string) => {
         if (!confirm(`Are you sure you want to delete question pool "${poolName}"?`)) return;
@@ -133,12 +144,22 @@ export default function QuestionPoolListPage() {
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search by name or form..."
+                        placeholder="Search by pool name or form..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-10"
                     />
                 </div>
+                {formIdFilter && (
+                    <Button
+                        variant="secondary"
+                        onClick={() => router.push("/question-pools")}
+                        className="bg-primary/10 text-primary hover:bg-primary/20"
+                    >
+                        Showing Form #{formIdFilter}
+                        <XCircle className="ml-2 h-4 w-4 text-primary" />
+                    </Button>
+                )}
             </div>
 
             {/* Table */}

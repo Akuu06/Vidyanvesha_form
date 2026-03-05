@@ -278,7 +278,7 @@ export default function FormsPage() {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/question-pools/`}>
+                          <Link href={`/question-pools?formId=${form.id}`}>
                             <Copy className="mr-2 h-4 w-4" />
                             Manage Question Pools
                           </Link>
@@ -290,13 +290,13 @@ export default function FormsPage() {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/responses`}>
+                          <Link href={`/responses?formId=${form.id}`}>
                             <FileText className="mr-2 h-4 w-4" />
                             View Responses
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/form-questions/`}>
+                          <Link href={`/form-questions?formId=${form.id}`}>
                             <Plus className="mr-2 h-4 w-4" />
                             Manage Questions
                           </Link>

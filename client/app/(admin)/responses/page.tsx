@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -42,6 +43,10 @@ import { FormResponse } from "@/types/form.types";
 import { Badge } from "@/components/ui/badge";
 
 export default function ResponseListPage() {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const formIdFilter = searchParams.get("formId");
+
     const [searchQuery, setSearchQuery] = useState("");
     const [responses, setResponses] = useState<FormResponse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -68,13 +73,18 @@ export default function ResponseListPage() {
 
     const filteredResponses = useMemo(() => {
         return responses.filter((response) => {
+            // Filter by formId if provided in URL
+            if (formIdFilter && response.form !== Number(formIdFilter)) {
+                return false;
+            }
+
             const matchesSearch =
                 (response.form_title && response.form_title.toLowerCase().includes(searchQuery.toLowerCase())) ||
                 (response.user_name && response.user_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
                 (response.user_email && response.user_email.toLowerCase().includes(searchQuery.toLowerCase()));
             return matchesSearch;
         });
-    }, [responses, searchQuery]);
+    }, [responses, searchQuery, formIdFilter]);
 
     const handleDelete = async (responseId: number) => {
         if (!confirm(`Are you sure you want to delete this response?`)) return;
@@ -142,6 +152,16 @@ export default function ResponseListPage() {
                         className="pl-10"
                     />
                 </div>
+                {formIdFilter && (
+                    <Button
+                        variant="secondary"
+                        onClick={() => router.push("/responses")}
+                        className="bg-primary/10 text-primary hover:bg-primary/20"
+                    >
+                        Showing Form #{formIdFilter}
+                        <XCircle className="ml-2 h-4 w-4" />
+                    </Button>
+                )}
             </div>
 
             {/* Table */}
