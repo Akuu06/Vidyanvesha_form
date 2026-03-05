@@ -5,47 +5,51 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Loader2, Save, FileText, Calendar as CalendarIcon } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { ArrowLeft, Loader2, Save, Database } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import { z } from "zod";
 import api from "@/config/axios";
 import { API_CONTS } from "@/lib/api";
 import { firebaseService } from "@/lib/firebaseService";
-import { formResponseService } from "@/service/FormResponseService";
+import { questionPoolService } from "@/service/QuestionPoolService";
 import { Form } from "@/types/form.types";
-import { format } from "date-fns";
 
-const createResponseSchema = z.object({
+const createPoolSchema = z.object({
     form: z.number().min(1, "Please select a form"),
-    started_at: z.string().min(1, "Start date is required"),
-    user_id: z.string().optional().nullable(),
+    name: z.string().min(3, "Name must be at least 3 characters").max(200, "Name must not exceed 200 characters"),
+    pick_count: z.number().min(1, "Pick count must be at least 1"),
+    shuffle_questions: z.boolean(),
 });
 
-type CreateResponseInput = z.infer<typeof createResponseSchema>;
+type CreatePoolInput = z.infer<typeof createPoolSchema>;
 
-export default function CreateResponsePage() {
+export default function CreateQuestionPoolPage() {
     const router = useRouter();
     const [isCreating, setIsCreating] = useState(false);
     const [forms, setForms] = useState<Form[]>([]);
     const [isLoadingForms, setIsLoadingForms] = useState(true);
 
     const {
+        register,
         handleSubmit,
         formState: { errors },
         setValue,
         watch
-    } = useForm<CreateResponseInput>({
-        resolver: zodResolver(createResponseSchema),
+    } = useForm<CreatePoolInput>({
+        resolver: zodResolver(createPoolSchema),
         defaultValues: {
-            started_at: new Date().toISOString(),
+            pick_count: 10,
+            shuffle_questions: true
         }
     });
 
-    const selectedForm = watch("form");
+    const shuffleValue = watch("shuffle_questions");
 
     useEffect(() => {
         const fetchForms = async () => {
@@ -67,15 +71,15 @@ export default function CreateResponsePage() {
         fetchForms();
     }, []);
 
-    const onSubmit = async (data: CreateResponseInput) => {
+    const onSubmit = async (data: CreatePoolInput) => {
         setIsCreating(true);
         try {
-            await formResponseService.createFormResponse(data);
-            toast.success("Form response/attempt initialized successfully!");
-            router.push("/responses");
+            await questionPoolService.createQuestionPool(data);
+            toast.success("Question pool created successfully!");
+            router.push("/question-pools");
         } catch (error: any) {
-            console.error("Error creating response:", error);
-            const errorMessage = error.response?.data?.detail || "Failed to initialize attempt. Please check all fields.";
+            console.error("Error creating question pool:", error);
+            const errorMessage = error.response?.data?.detail || "Failed to create pool. Please try again.";
             toast.error(errorMessage);
         } finally {
             setIsCreating(false);
@@ -86,15 +90,15 @@ export default function CreateResponsePage() {
         <div className="flex flex-col gap-6 p-6">
             {/* Header */}
             <div className="flex items-center gap-4">
-                <Link href="/responses">
+                <Link href="/question-pools">
                     <Button variant="ghost" size="icon" disabled={isCreating}>
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                 </Link>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Manual Response Entry</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Create Question Pool</h1>
                     <p className="text-muted-foreground">
-                        Initialize a new form attempt/response record
+                        Define rules for randomizing questions from a larger bank
                     </p>
                 </div>
             </div>
@@ -104,11 +108,11 @@ export default function CreateResponsePage() {
                 <Card className="border-t-4 border-t-primary">
                     <CardHeader>
                         <div className="flex items-center gap-2 mb-2">
-                            <FileText className="h-5 w-5 text-primary" />
-                            <CardTitle>Attempt Details</CardTitle>
+                            <Database className="h-5 w-5 text-primary" />
+                            <CardTitle>Pool Configuration</CardTitle>
                         </div>
                         <CardDescription>
-                            Associate this record with a form and set the start time
+                            Select a form and define how many questions should be picked
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -136,31 +140,55 @@ export default function CreateResponsePage() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="started_at">Started At *</Label>
-                                <div className="relative">
-                                    <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <input
-                                        type="datetime-local"
-                                        id="started_at"
-                                        className="flex h-10 w-full rounded-md border border-input bg-background px-10 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                        defaultValue={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
-                                        onChange={(e) => {
-                                            const date = new Date(e.target.value);
-                                            setValue("started_at", date.toISOString());
-                                        }}
-                                        disabled={isCreating}
-                                    />
-                                </div>
-                                {errors.started_at && (
-                                    <p className="text-sm text-red-500">{errors.started_at.message}</p>
+                                <Label htmlFor="name">Pool Name *</Label>
+                                <Input
+                                    id="name"
+                                    placeholder="e.g., Final Year Math Question Bank"
+                                    {...register("name")}
+                                    disabled={isCreating}
+                                />
+                                {errors.name && (
+                                    <p className="text-sm text-red-500">{errors.name.message}</p>
                                 )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="pick_count">Number of Questions to Pick *</Label>
+                                <Input
+                                    id="pick_count"
+                                    type="number"
+                                    min="1"
+                                    {...register("pick_count", { valueAsNumber: true })}
+                                    disabled={isCreating}
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    The system will randomly select this many questions for each student.
+                                </p>
+                                {errors.pick_count && (
+                                    <p className="text-sm text-red-500">{errors.pick_count.message}</p>
+                                )}
+                            </div>
+
+                            <div className="flex items-center justify-between rounded-lg border p-4">
+                                <div className="space-y-0.5">
+                                    <Label htmlFor="shuffle">Shuffle Questions</Label>
+                                    <p className="text-sm text-muted-foreground">
+                                        Randomize the order of picked questions
+                                    </p>
+                                </div>
+                                <Switch
+                                    id="shuffle"
+                                    checked={shuffleValue}
+                                    onCheckedChange={(checked) => setValue("shuffle_questions", checked)}
+                                    disabled={isCreating}
+                                />
                             </div>
 
                             <div className="flex gap-3 pt-4">
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => router.push("/responses")}
+                                    onClick={() => router.push("/question-pools")}
                                     disabled={isCreating}
                                 >
                                     Cancel
@@ -169,12 +197,12 @@ export default function CreateResponsePage() {
                                     {isCreating ? (
                                         <>
                                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Initializing...
+                                            Creating Pool...
                                         </>
                                     ) : (
                                         <>
                                             <Save className="mr-2 h-4 w-4" />
-                                            Initialize Attempt
+                                            Create Pool
                                         </>
                                     )}
                                 </Button>

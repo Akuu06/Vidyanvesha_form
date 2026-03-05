@@ -7,11 +7,11 @@ export const API_CONTS = {
         GET: "/forms/:id",
     },
     RESPONSES: {
-        LIST: "/responses",
-        CREATE: "/responses",
-        UPDATE: "/responses/:id",
-        DELETE: "/responses/:id",
-        GET: "/responses/:id",
+        LIST: "/form-responses/",
+        CREATE: "/form-responses/",
+        UPDATE: "/form-responses/:id/",
+        DELETE: "/form-responses/:id/",
+        GET: "/form-responses/:id/",
     },
     SETTINGS: {
         LIST: "/settings",
@@ -26,5 +26,19 @@ export const API_CONTS = {
         UPDATE: "/form-sections/:id/",
         DELETE: "/form-sections/:id/",
         GET: "/form-sections/:id/",
+    },
+    QUESTION_POOLS: {
+        LIST: "/question-pools/",
+        CREATE: "/question-pools/",
+        UPDATE: "/question-pools/:id/",
+        DELETE: "/question-pools/:id/",
+        GET: "/question-pools/:id/",
+    },
+    FORM_QUESTIONS: {
+        LIST: "/form-questions/",
+        CREATE: "/form-questions/",
+        UPDATE: "/form-questions/:id/",
+        DELETE: "/form-questions/:id/",
+        GET: "/form-questions/:id/",
     }
 }

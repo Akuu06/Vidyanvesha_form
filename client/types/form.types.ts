@@ -168,12 +168,14 @@ export interface FormQuestion extends TimeStampedAudit {
 
   // Computed/Relations
   snapshot?: QuestionSnapshot;
+  form_title?: string;
   section_title?: string;
 }
 
 export interface QuestionPool extends TimeStampedAudit {
   id: number;
   form: number; // Form ID
+  form_title?: string;
   name: string;
   pick_count: number;
   shuffle_questions: boolean;
@@ -382,19 +384,28 @@ export interface CreateSectionPayload {
   order: number;
 }
 
-export interface CreateQuestionPayload {
+export interface CreateQuestionPoolPayload {
   form: number;
-  section?: number | null;
+  name: string;
+  pick_count: number;
+  shuffle_questions: boolean;
+}
+
+export interface CreateFormQuestionPayload {
+  form: number;
+  section: number | null;
   question_id: number;
-  question_text: string;
-  question_type: QuestionType;
-  options?: QuestionOption[];
+  consider_for_analytics: boolean;
   order: number;
-  is_required?: boolean;
-  marks?: number;
-  negative_marks?: number;
-  explanation?: string;
-  hint?: string;
+  is_required: boolean;
+  marks: number;
+  negative_marks: number;
+  shuffle_options_override?: boolean | null;
+  time_limit_seconds?: number | null;
+}
+
+export interface UpdateFormQuestionPayload extends Partial<FormQuestion> {
+  id: number;
 }
 
 export interface SubmitAnswerPayload {
@@ -403,4 +414,14 @@ export interface SubmitAnswerPayload {
   answer_text?: string | null;
   selected_option_ids?: string[] | null;
   time_spent_seconds: number;
+}
+
+export interface CreateFormResponsePayload {
+  form: number;
+  started_at: string;
+  user_id?: string | null;
+}
+
+export interface UpdateFormResponsePayload extends Partial<FormResponse> {
+  id: number;
 }

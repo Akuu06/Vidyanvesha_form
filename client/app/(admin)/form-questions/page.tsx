@@ -29,63 +29,64 @@ import {
     Edit,
     Eye,
     Trash2,
-    Inbox,
+    HelpCircle,
     Loader2,
     AlertCircle,
-    CheckCircle2,
-    XCircle,
-    Clock
+    Hash,
+    Layers,
+    FileText,
+    Database
 } from "lucide-react";
 import { toast } from "sonner";
-import { formResponseService } from "@/service/FormResponseService";
-import { FormResponse } from "@/types/form.types";
+import { formQuestionService } from "@/service/FormQuestionService";
+import { FormQuestion } from "@/types/form.types";
 import { Badge } from "@/components/ui/badge";
 
-export default function ResponseListPage() {
+export default function FormQuestionListPage() {
     const [searchQuery, setSearchQuery] = useState("");
-    const [responses, setResponses] = useState<FormResponse[]>([]);
+    const [formQuestions, setFormQuestions] = useState<FormQuestion[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchResponses = async () => {
+    const fetchFormQuestions = async () => {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await formResponseService.getAllFormResponses();
-            setResponses(data || []);
+            const data = await formQuestionService.getAllFormQuestions();
+            setFormQuestions(data || []);
         } catch (err) {
-            console.error("Error fetching responses:", err);
-            setError("Failed to load responses. Please try again later.");
-            toast.error("Failed to load responses");
+            console.error("Error fetching form questions:", err);
+            setError("Failed to load form questions. Please try again later.");
+            toast.error("Failed to load form questions");
         } finally {
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchResponses();
+        fetchFormQuestions();
     }, []);
 
-    const filteredResponses = useMemo(() => {
-        return responses.filter((response) => {
+    const filteredQuestions = useMemo(() => {
+        return formQuestions.filter((item) => {
             const matchesSearch =
-                (response.form_title && response.form_title.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                (response.user_name && response.user_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                (response.user_email && response.user_email.toLowerCase().includes(searchQuery.toLowerCase()));
+                (item.form_title && item.form_title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                (item.section_title && item.section_title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                (item.question_id.toString().includes(searchQuery));
             return matchesSearch;
         });
-    }, [responses, searchQuery]);
+    }, [formQuestions, searchQuery]);
 
-    const handleDelete = async (responseId: number) => {
-        if (!confirm(`Are you sure you want to delete this response?`)) return;
+    const handleDelete = async (id: number) => {
+        if (!confirm(`Are you sure you want to remove this question from the form?`)) return;
 
         try {
-            await formResponseService.deleteFormResponse(responseId);
-            toast.success(`Response deleted successfully`);
-            fetchResponses();
+            await formQuestionService.deleteFormQuestion(id);
+            toast.success(`Question removed from form successfully`);
+            fetchFormQuestions();
         } catch (err) {
-            console.error("Error deleting response:", err);
-            toast.error("Failed to delete response");
+            console.error("Error deleting form question:", err);
+            toast.error("Failed to remove question");
         }
     };
 
@@ -93,7 +94,7 @@ export default function ResponseListPage() {
         return (
             <div className="flex h-[400px] w-full flex-col items-center justify-center gap-4">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-muted-foreground">Loading responses...</p>
+                <p className="text-muted-foreground">Loading form questions...</p>
             </div>
         );
     }
@@ -103,10 +104,10 @@ export default function ResponseListPage() {
             <div className="flex h-[400px] w-full flex-col items-center justify-center gap-4 p-6 text-center">
                 <AlertCircle className="h-12 w-12 text-destructive" />
                 <div>
-                    <h3 className="text-lg font-semibold">Error Loading Responses</h3>
+                    <h3 className="text-lg font-semibold">Error Loading Data</h3>
                     <p className="text-muted-foreground">{error}</p>
                 </div>
-                <Button onClick={fetchResponses} variant="outline">
+                <Button onClick={fetchFormQuestions} variant="outline">
                     Try Again
                 </Button>
             </div>
@@ -118,15 +119,15 @@ export default function ResponseListPage() {
             {/* Header */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Responses</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Form Questions</h1>
                     <p className="text-muted-foreground">
-                        View and manage user submissions
+                        Manage question associations for your forms and sections
                     </p>
                 </div>
-                <Link href="/responses/create">
+                <Link href="/form-questions/create">
                     <Button>
                         <Plus className="mr-2 h-4 w-4" />
-                        New Attempt
+                        Add Question to Form
                     </Button>
                 </Link>
             </div>
@@ -136,7 +137,7 @@ export default function ResponseListPage() {
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search by form title or user..."
+                        placeholder="Search by form or section title..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-10"
@@ -145,21 +146,21 @@ export default function ResponseListPage() {
             </div>
 
             {/* Table */}
-            {filteredResponses.length === 0 ? (
+            {filteredQuestions.length === 0 ? (
                 <EmptyState
-                    icon={Inbox}
-                    title="No responses found"
+                    icon={HelpCircle}
+                    title="No form questions found"
                     description={
                         searchQuery
                             ? "Try adjusting your search query"
-                            : "Submissions will appear here once users start filling your forms"
+                            : "Start by adding questions to your forms and sections"
                     }
                     action={
                         searchQuery
                             ? undefined
                             : {
-                                label: "Manual Entry",
-                                onClick: () => (window.location.href = "/responses/create"),
+                                label: "Add your first question",
+                                onClick: () => (window.location.href = "/form-questions/create"),
                             }
                     }
                 />
@@ -168,50 +169,43 @@ export default function ResponseListPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Form</TableHead>
-                                <TableHead>User / Attempt</TableHead>
-                                <TableHead>Started At</TableHead>
-                                <TableHead className="text-center">Score</TableHead>
-                                <TableHead className="text-center">Status</TableHead>
+                                <TableHead>Form & Section</TableHead>
+                                <TableHead className="text-center">Question ID</TableHead>
+                                <TableHead className="text-center">Order</TableHead>
+                                <TableHead className="text-center">Marks</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredResponses.map((response) => (
-                                <TableRow key={response.id}>
+                            {filteredQuestions.map((item) => (
+                                <TableRow key={item.id}>
                                     <TableCell>
                                         <div className="flex flex-col gap-1">
-                                            <span className="font-semibold">{response.form_title || `Form ID: ${response.form}`}</span>
+                                            <div className="flex items-center gap-2">
+                                                <FileText className="h-4 w-4 text-primary" />
+                                                <span className="font-semibold">{item.form_title || `Form ID: ${item.form}`}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                <Layers className="h-3 w-3" />
+                                                <span>{item.section_title || `Section ID: ${item.section || 'None'}`}</span>
+                                            </div>
                                         </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col gap-1">
-                                            <span className="text-sm font-medium">
-                                                {response.user_name || response.user_email || "Anonymous User"}
-                                            </span>
-                                            <span className="text-xs text-muted-foreground">
-                                                Attempt #{response.attempt_number}
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-sm text-muted-foreground">
-                                        {formatDateTime(response.started_at)}
-                                    </TableCell>
-                                    <TableCell className="text-center font-bold">
-                                        {response.score.toFixed(1)}
                                     </TableCell>
                                     <TableCell className="text-center">
-                                        {response.is_completed ? (
-                                            <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-100 border-green-200 gap-1">
-                                                <CheckCircle2 className="h-3 w-3" />
-                                                Submitted
-                                            </Badge>
-                                        ) : (
-                                            <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 gap-1">
-                                                <Clock className="h-3 w-3" />
-                                                In Progress
-                                            </Badge>
-                                        )}
+                                        <Badge variant="outline" className="font-mono">
+                                            Q-{item.question_id}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                        <div className="flex items-center justify-center gap-1 font-medium italic">
+                                            <Hash className="h-3 w-3" />
+                                            {item.order}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                                            {item.marks} pts
+                                        </span>
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>
@@ -224,24 +218,24 @@ export default function ResponseListPage() {
                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem asChild>
-                                                    <Link href={`/responses/${response.id}`}>
+                                                    <Link href={`/form-questions/${item.id}`}>
                                                         <Eye className="mr-2 h-4 w-4" />
                                                         View Details
                                                     </Link>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem asChild>
-                                                    <Link href={`/responses/${response.id}/edit`}>
+                                                    <Link href={`/form-questions/${item.id}/edit`}>
                                                         <Edit className="mr-2 h-4 w-4" />
-                                                        Edit Record
+                                                        Edit Mapping
                                                     </Link>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator />
                                                 <DropdownMenuItem
                                                     className="text-red-600"
-                                                    onClick={() => handleDelete(response.id)}
+                                                    onClick={() => handleDelete(item.id)}
                                                 >
                                                     <Trash2 className="mr-2 h-4 w-4" />
-                                                    Delete
+                                                    Remove
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>

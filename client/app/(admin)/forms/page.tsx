@@ -278,6 +278,12 @@ export default function FormsPage() {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
+                          <Link href={`/question-pools/`}>
+                            <Copy className="mr-2 h-4 w-4" />
+                            Manage Question Pools
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
                           <Link href={`/take/${form.public_id}`}>
                             <Eye className="mr-2 h-4 w-4" />
                             Preview
@@ -287,6 +293,12 @@ export default function FormsPage() {
                           <Link href={`/forms/${form.id}/responses`}>
                             <FileText className="mr-2 h-4 w-4" />
                             View Responses
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={`/form-questions/`}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Manage Questions
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem

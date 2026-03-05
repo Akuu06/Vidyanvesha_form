@@ -26,13 +26,17 @@ import {
   LogOut,
   User,
   ChevronRight,
-  Layers
+  Layers,
+  Database,
+  HelpCircle
 } from "lucide-react";
 import { currentUser } from "@/lib/mock-data";
 
 const navigation = [
   { name: "Forms", href: "/forms", icon: FileText },
   { name: "Sections", href: "/section-management", icon: Layers },
+  { name: "Form Questions", href: "/form-questions", icon: HelpCircle },
+  { name: "Question Pools", href: "/question-pools", icon: Database },
   { name: "Responses", href: "/responses", icon: Inbox },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Settings", href: "/settings", icon: Settings },
