@@ -1,5 +1,3 @@
-// New Form Page
-
 "use client";
 
 import { useState } from "react";
@@ -15,9 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createFormSchema, type CreateFormInput } from "@/lib/validators";
 import { FORM_MODES } from "@/lib/constants";
 import { FormMode, FormStatus } from "@/types";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import api from "@/config/axios";
+import { API_CONTS } from "@/lib/api";
+import { firebaseService } from "@/lib/firebaseService";
 
 export default function NewFormPage() {
   const router = useRouter();
@@ -40,15 +41,39 @@ export default function NewFormPage() {
 
   const onSubmit = async (data: CreateFormInput) => {
     setIsCreating(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Create form data:", data);
+
+    try {
+      const token = await firebaseService.getUserAccessToken();
+
+      // Send only title and description as requested, server handles defaults
+      const payload = {
+        title: data.title,
+        description: data.description?.trim() || "",
+      };
+
+      // Ensure trailing slash for Django backend if it's sensitive
+      const url = API_CONTS.FORMS.CREATE.endsWith('/')
+        ? API_CONTS.FORMS.CREATE
+        : `${API_CONTS.FORMS.CREATE}/`;
+
+      const response = await api.post(url, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
       toast.success("Form created successfully!");
+      // Redirect to the newly created form's detail page or edit page
+      // Assuming the API returns the created form with an id
+      const createdFormId = response.data.id;
+      router.push(`/forms`);
+    } catch (error: any) {
+      console.error("Error creating form:", error);
+      const errorMessage = error.response?.data?.detail || "Failed to create form. Please try again.";
+      toast.error(errorMessage);
+    } finally {
       setIsCreating(false);
-      // Redirect to edit page with mock ID
-      router.push("/forms/1/edit");
-    }, 1000);
+    }
   };
 
   return (
@@ -56,7 +81,7 @@ export default function NewFormPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/forms">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" disabled={isCreating}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
@@ -85,6 +110,7 @@ export default function NewFormPage() {
                   id="title"
                   placeholder="e.g., Semester 3 Internal Test"
                   {...register("title")}
+                  disabled={isCreating}
                 />
                 {errors.title && (
                   <p className="text-sm text-red-500">{errors.title.message}</p>
@@ -98,6 +124,7 @@ export default function NewFormPage() {
                   placeholder="Provide a brief description of this form..."
                   rows={4}
                   {...register("description")}
+                  disabled={isCreating}
                 />
                 {errors.description && (
                   <p className="text-sm text-red-500">{errors.description.message}</p>
@@ -109,6 +136,7 @@ export default function NewFormPage() {
                 <Select
                   defaultValue={watch("mode")}
                   onValueChange={(value) => setValue("mode", value as FormMode)}
+                  disabled={isCreating}
                 >
                   <SelectTrigger id="mode">
                     <SelectValue placeholder="Select form type" />
@@ -141,7 +169,7 @@ export default function NewFormPage() {
                 <Button type="submit" disabled={isCreating} className="flex-1">
                   {isCreating ? (
                     <>
-                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Creating...
                     </>
                   ) : (

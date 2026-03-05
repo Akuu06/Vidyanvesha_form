@@ -14,10 +14,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { loginSchema, type LoginInput } from "@/lib/validators";
 import { LogIn, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { firebaseService } from "@/lib/firebaseService";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const {
     register,
     handleSubmit,
@@ -31,15 +32,38 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginInput) => {
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Login data:", data);
+
+    try {
+      const user = await firebaseService.login(data.email, data.password);
+      const accessToken = await user.getIdToken();
+      console.log("Login success! Access Token:", accessToken);
       toast.success("Login successful! Redirecting...");
-      setIsLoading(false);
+
       // In real app: redirect to dashboard
       window.location.href = "/forms";
-    }, 1000);
+    } catch (error: any) {
+      console.error("Login Error:", error);
+      toast.error(error.message || "Failed to sign in. Please check your credentials.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const user = await firebaseService.loginWithGoogle();
+      const accessToken = await user.getIdToken();
+      console.log("Google Login success! Access Token:", accessToken);
+      toast.success("Signed in with Google! Redirecting...");
+
+      window.location.href = "/forms";
+    } catch (error: any) {
+      console.error("Google Login Error:", error);
+      toast.error(error.message || "Failed to sign in with Google.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -130,7 +154,13 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button type="button" variant="outline" className="w-full" disabled={isLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={isLoading}
+              onClick={onGoogleSignIn}
+            >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"

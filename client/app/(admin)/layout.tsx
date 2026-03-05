@@ -25,12 +25,14 @@ import {
   X,
   LogOut,
   User,
-  ChevronRight
+  ChevronRight,
+  Layers
 } from "lucide-react";
 import { currentUser } from "@/lib/mock-data";
 
 const navigation = [
   { name: "Forms", href: "/forms", icon: FileText },
+  { name: "Sections", href: "/section-management", icon: Layers },
   { name: "Responses", href: "/responses", icon: Inbox },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Settings", href: "/settings", icon: Settings },
@@ -146,7 +148,7 @@ export default function AdminLayout({
                   <AvatarImage src={currentUser.avatar_url} alt={currentUser.full_name} />
                   <AvatarFallback>
                     {currentUser.first_name[0]}
-{currentUser.last_name[0]}
+                    {currentUser.last_name[0]}
                   </AvatarFallback>
                 </Avatar>
               </Button>

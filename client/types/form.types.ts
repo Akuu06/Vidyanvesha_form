@@ -17,7 +17,8 @@ export enum FormStatus {
 
 export enum TimerStartMode {
   OPEN = "open",
-  FIRST_QUESTION = "first_question"
+  FIRST_QUESTION = "first_question",
+  FORM_START = "FORM_START"
 }
 
 export enum QuestionType {
@@ -66,68 +67,68 @@ export interface TimeStampedAudit {
 export interface Form extends TimeStampedAudit {
   id: number;
   public_id: string; // UUID
-  
+
   // Basic Info
   title: string;
   description: string;
   mode: FormMode;
   status: FormStatus;
-  
+
   // Access Control
   is_public: boolean;
   login_required: boolean;
   allow_anonymous: boolean;
-  
+
   // Time Management
   start_date: string | null; // ISO DateTime
   end_date: string | null; // ISO DateTime
   grace_minutes: number;
-  
+
   // Attempts
   max_attempts: number;
   cooldown_minutes: number;
-  
+
   // Timer Configuration
   time_limit_minutes: number | null;
   timer_starts_on: TimerStartMode;
   auto_submit_on_close: boolean;
-  
+
   // Navigation
   allow_back_navigation: boolean;
   one_question_per_page: boolean;
   show_progress_bar: boolean;
   enable_review_page: boolean;
-  
+
   // Shuffling
   shuffle_questions: boolean;
   shuffle_options_globally: boolean;
-  
+
   // Scoring
   passing_marks: number | null;
   enable_negative_marking: boolean;
   round_score_to: number;
-  
+
   // Result Display
   show_result_immediately: boolean;
   show_correct_answers: boolean;
   show_explanations: boolean;
   show_score_breakup: boolean;
-  
+
   // Auto-save
   auto_save_answers: boolean;
   save_interval_seconds: number;
-  
+
   // Security
   record_ip_address: boolean;
   detect_tab_switch: boolean;
   require_fullscreen: boolean;
   webcam_required: boolean;
   disable_copy_paste: boolean;
-  
+
   // References
   institute_id: number;
   university_id: number;
-  
+
   // Computed Fields (from serializers)
   question_count?: number;
   response_count?: number;
@@ -138,12 +139,13 @@ export interface Form extends TimeStampedAudit {
 export interface FormSection extends TimeStampedAudit {
   id: number;
   form: number; // Form ID
+  form_title?: string;
   title: string;
   description: string;
   order: number;
   institute_id: number;
   university_id: number;
-  
+
   // Computed/Relations
   questions?: FormQuestion[];
   question_count?: number;
@@ -163,7 +165,7 @@ export interface FormQuestion extends TimeStampedAudit {
   time_limit_seconds: number | null;
   institute_id: number;
   university_id: number;
-  
+
   // Computed/Relations
   snapshot?: QuestionSnapshot;
   section_title?: string;
@@ -231,7 +233,7 @@ export interface FormResponse extends TimeStampedAudit {
   ip_address: string | null;
   institute_id: number;
   university_id: number;
-  
+
   // Computed/Relations
   answers?: FormAnswer[];
   answer_count?: number;
@@ -254,7 +256,7 @@ export interface FormAnswer extends TimeStampedAudit {
   marks_awarded: number;
   institute_id: number;
   university_id: number;
-  
+
   // Computed
   question_text?: string;
   question_type?: QuestionType;
@@ -310,7 +312,7 @@ export interface QuestionAnalytics extends TimeStampedAudit {
   accuracy_percentage: number; // Computed property
   institute_id: number;
   university_id: number;
-  
+
   // Computed
   question_text?: string;
   average_time_spent?: number;

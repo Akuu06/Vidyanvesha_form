@@ -1,8 +1,6 @@
-// Forms Listing Page
-
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +30,6 @@ import {
 import { FormStatusBadge } from "@/components/forms/form-status-badge";
 import { FormModeBadge } from "@/components/forms/form-mode-badge";
 import { EmptyState } from "@/components/ui/empty-state";
-import { mockForms } from "@/lib/mock-data";
 import { formatDateTime } from "@/lib/form-utils";
 import {
   Plus,
@@ -42,34 +39,97 @@ import {
   Eye,
   Copy,
   Trash2,
-  FileText
+  FileText,
+  Loader2,
+  AlertCircle
 } from "lucide-react";
-import { FormStatus, FormMode } from "@/types";
+import { FormStatus, FormMode, Form } from "@/types";
 import { toast } from "sonner";
+import { firebaseService } from "@/lib/firebaseService";
+import { API_CONTS } from "@/lib/api";
 
 export default function FormsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [modeFilter, setModeFilter] = useState<string>("all");
+  const [forms, setForms] = useState<Form[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const forms = mockForms;
+  const fetchForms = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const token = await firebaseService.getUserAccessToken();
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://13.206.10.42:8000/api";
+      const response = await fetch(`${baseUrl}${API_CONTS.FORMS.LIST}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-  const filteredForms = forms.filter((form) => {
-    const matchesSearch = form.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          form.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || form.status === statusFilter;
-    const matchesMode = modeFilter === "all" || form.mode === modeFilter;
-    
-    return matchesSearch && matchesStatus && matchesMode;
-  });
+      if (!response.ok) {
+        throw new Error("Failed to fetch forms");
+      }
+
+      const data = await response.json();
+      setForms(data.results || []);
+    } catch (err) {
+      console.error("Error fetching forms:", err);
+      setError("Failed to load forms. Please try again later.");
+      toast.error("Failed to load forms");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchForms();
+  }, []);
+
+  const filteredForms = useMemo(() => {
+    return forms.filter((form) => {
+      const matchesSearch = form.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (form.description && form.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesStatus = statusFilter === "all" || form.status === statusFilter;
+      const matchesMode = modeFilter === "all" || form.mode === modeFilter;
+
+      return matchesSearch && matchesStatus && matchesMode;
+    });
+  }, [forms, searchQuery, statusFilter, modeFilter]);
 
   const handleDelete = (formId: number, formTitle: string) => {
+    // In a real app, you would call the DELETE API here
     toast.success(`Form "${formTitle}" deleted successfully`);
   };
 
   const handleDuplicate = (formId: number, formTitle: string) => {
     toast.success(`Form "${formTitle}" duplicated successfully`);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[400px] w-full flex-col items-center justify-center gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-muted-foreground">Loading forms...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[400px] w-full flex-col items-center justify-center gap-4 p-6 text-center">
+        <AlertCircle className="h-12 w-12 text-destructive" />
+        <div>
+          <h3 className="text-lg font-semibold">Error Loading Forms</h3>
+          <p className="text-muted-foreground">{error}</p>
+        </div>
+        <Button onClick={fetchForms} variant="outline">
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -137,9 +197,9 @@ export default function FormsPage() {
             searchQuery || statusFilter !== "all" || modeFilter !== "all"
               ? undefined
               : {
-                  label: "Create Form",
-                  onClick: () => (window.location.href = "/forms/new"),
-                }
+                label: "Create Form",
+                onClick: () => (window.location.href = "/forms/new"),
+              }
           }
         />
       ) : (
@@ -167,9 +227,11 @@ export default function FormsPage() {
                       >
                         {form.title}
                       </Link>
-                      <p className="text-sm text-muted-foreground line-clamp-1">
-                        {form.description}
-                      </p>
+                      {form.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-1">
+                          {form.description}
+                        </p>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -198,9 +260,21 @@ export default function FormsPage() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
+                          <Link href={`/forms/${form.id}`}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
                           <Link href={`/forms/${form.id}/edit`}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={`/section-management/`}>
+                            <Copy className="mr-2 h-4 w-4" />
+                            Manage Sections
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
