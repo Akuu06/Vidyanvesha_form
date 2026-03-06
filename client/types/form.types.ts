@@ -168,6 +168,8 @@ export interface FormQuestion extends TimeStampedAudit {
 
   // Computed/Relations
   snapshot?: QuestionSnapshot;
+  question_text?: string;
+  question_type?: string;
   form_title?: string;
   section_title?: string;
 }
@@ -207,14 +209,30 @@ export interface QuestionOption {
 
 export interface QuestionSnapshot extends TimeStampedAudit {
   id: number;
-  form_question: number; // FormQuestion ID (OneToOne)
+  form_question: number;
+  form_question_detail: {
+    id: number;
+    form_id: number;
+    form_title: string;
+    form_status?: string;
+    question_id: number;
+    order: number;
+    is_required?: boolean;
+    marks?: number;
+    consider_for_analytics?: boolean;
+  };
   question_text: string;
-  question_type: QuestionType;
-  options_snapshot: QuestionOption[] | null;
+  question_type: QuestionType | string;
+  options_snapshot: {
+    options: Array<{
+      id: string;
+      text: string;
+    }>;
+  } | null;
   explanation?: string;
   hint?: string;
-  institute_id: number;
-  university_id: number;
+  institute_id: number | null;
+  university_id: number | null;
 }
 
 // ============================================
@@ -269,11 +287,18 @@ export interface ResponseFileUpload extends TimeStampedAudit {
   response: number; // FormResponse ID
   question_id: number;
   file_path: string;
-  file_name?: string;
-  file_size?: number;
-  mime_type?: string;
-  institute_id: number;
-  university_id: number;
+  institute_id: number | null;
+  university_id: number | null;
+}
+
+export interface CreateFileUploadPayload {
+  response: number;
+  question_id: number;
+  file_path: string;
+}
+
+export interface UpdateFileUploadPayload extends Partial<CreateFileUploadPayload> {
+  id: number;
 }
 
 // ============================================
@@ -283,11 +308,23 @@ export interface ResponseFileUpload extends TimeStampedAudit {
 export interface FormAccessRule extends TimeStampedAudit {
   id: number;
   form: number; // Form ID
-  allowed_email_domain: string;
-  allowed_user_group_id: string | null; // UUID
+  form_title?: string;
+  allowed_email_domain: string | null;
+  allowed_user_group_id: number | null;
   otp_required: boolean;
-  institute_id: number;
-  university_id: number;
+  institute_id: number | null;
+  university_id: number | null;
+}
+
+export interface CreateAccessRulePayload {
+  form: number;
+  allowed_email_domain: string | null;
+  allowed_user_group_id: number | null;
+  otp_required: boolean;
+}
+
+export interface UpdateAccessRulePayload extends Partial<CreateAccessRulePayload> {
+  id: number;
 }
 
 export interface FormAttemptLog extends TimeStampedAudit {
@@ -312,10 +349,11 @@ export interface QuestionAnalytics extends TimeStampedAudit {
   total_attempts: number;
   correct_attempts: number;
   accuracy_percentage: number; // Computed property
-  institute_id: number;
-  university_id: number;
+  institute_id: number | null;
+  university_id: number | null;
 
   // Computed
+  form_title?: string;
   question_text?: string;
   average_time_spent?: number;
 }
@@ -423,5 +461,51 @@ export interface CreateFormResponsePayload {
 }
 
 export interface UpdateFormResponsePayload extends Partial<FormResponse> {
+  id: number;
+}
+
+export interface CreateFormAnswerPayload {
+  response: number;
+  question_id: number;
+  answer_text: string | null;
+  selected_option_ids: string[] | null;
+  displayed_option_order: string[] | null;
+  time_spent_seconds: number;
+  is_correct: boolean;
+  marks_awarded: number;
+}
+
+export interface UpdateFormAnswerPayload extends Partial<CreateFormAnswerPayload> {
+  id: number;
+}
+
+export interface CreateQuestionAnalyticPayload {
+  form: number;
+  question_id: number;
+  total_attempts: number;
+  correct_attempts: number;
+}
+
+export interface UpdateQuestionAnalyticPayload extends Partial<CreateQuestionAnalyticPayload> {
+  id: number;
+}
+
+export interface UpdateQuestionAnalyticPayload extends Partial<CreateQuestionAnalyticPayload> {
+  id: number;
+}
+
+export interface CreateQuestionSnapshotPayload {
+  form_question: number;
+  question_text: string;
+  question_type: QuestionType | string;
+  options_snapshot: {
+    options: Array<{
+      id: string;
+      text: string;
+    }>;
+  };
+}
+
+export interface UpdateQuestionSnapshotPayload extends Partial<CreateQuestionSnapshotPayload> {
   id: number;
 }

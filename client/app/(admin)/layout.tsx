@@ -28,7 +28,10 @@ import {
   ChevronRight,
   Layers,
   Database,
-  HelpCircle
+  HelpCircle,
+  File,
+  Ruler,
+
 } from "lucide-react";
 import { currentUser } from "@/lib/mock-data";
 
@@ -37,9 +40,14 @@ const navigation = [
   { name: "Sections", href: "/section-management", icon: Layers },
   { name: "Form Questions", href: "/form-questions", icon: HelpCircle },
   { name: "Question Pools", href: "/question-pools", icon: Database },
-  { name: "Responses", href: "/responses", icon: Inbox },
-  { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "Form Responses", href: "/responses", icon: Inbox },
+  { name: "Question Analytics", href: "/question-analytics", icon: BarChart3 },
   { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Form Answers", href: "/form-answers", icon: Layers },
+  { name: "Question Snapshots", href: "/question-snapshots", icon: HelpCircle },
+  { name: "File Uploads", href: "/file-uploads", icon: File },
+  { name: "Access Rules", href: "/access-rules", icon: Ruler }
+
 ];
 
 export default function AdminLayout({

@@ -40,5 +40,40 @@ export const API_CONTS = {
         UPDATE: "/form-questions/:id/",
         DELETE: "/form-questions/:id/",
         GET: "/form-questions/:id/",
-    }
+    },
+    FORM_ANSWERS: {
+        LIST: "/form-answers/",
+        CREATE: "/form-answers/",
+        UPDATE: "/form-answers/:id/",
+        DELETE: "/form-answers/:id/",
+        GET: "/form-answers/:id/",
+    },
+    QUESTION_ANALYTICS: {
+        LIST: "/question-analytics/",
+        CREATE: "/question-analytics/",
+        UPDATE: "/question-analytics/:id/",
+        DELETE: "/question-analytics/:id/",
+        GET: "/question-analytics/:id/",
+    },
+    QUESTION_SNAPSHOTS: {
+        LIST: "/question-snapshots/",
+        CREATE: "/question-snapshots/",
+        UPDATE: "/question-snapshots/:id/",
+        DELETE: "/question-snapshots/:id/",
+        GET: "/question-snapshots/:id/",
+    },
+    FILE_UPLOADS: {
+        LIST: "/file-uploads/",
+        CREATE: "/file-uploads/",
+        UPDATE: "/file-uploads/:id/",
+        DELETE: "/file-uploads/:id/",
+        GET: "/file-uploads/:id/",
+    },
+    ACCESS_RULES: {
+        LIST: "/access-rules/",
+        CREATE: "/access-rules/",
+        UPDATE: "/access-rules/:id/",
+        DELETE: "/access-rules/:id/",
+        GET: "/access-rules/:id/",
+    },
 }
